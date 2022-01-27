@@ -132,4 +132,30 @@ Reboot all hosts, and verify that :
 
 **Now we are all set**
 
+## Deployment of the Elasticsearch & Kibana ##
+
+Clone this repo into the directory on the main Docker Swarm host
+
+    $ cd ~/ES_Kibana
+    $ git clone git@github.com:Avilir/ek-swarm.git .
+
+Deploy the service into the docker swarm
+
+    $ docker stack deploy -c $(pwd)/docker-compose.yml elk
+
+Verify that the cluster is running :
+
+    $ docker service ls
+
+Sample output
+
+    ID             NAME                MODE         REPLICAS   IMAGE                                                  PORTS
+    aaaaaaaaaaaa   elk_elasticsearch   replicated   1/1        docker.elastic.co/elasticsearch/elasticsearch:7.16.3   *:9200->9200/tcp, *:9300->9300/tcp
+    bbbbbbbbbbbb   elk_kibana          replicated   1/1        docker.elastic.co/kibana/kibana:7.16.3                 *:5601->5601/tcp
+
+Now when the elasticsearch is up and running, it can be scaled for HA by updating the replication count
+
+    $ docker service update --replicas=2 <elasticsearch service id>
+
+Note: **elasticsearch replica count can be changed only after the one replica is run**
 
