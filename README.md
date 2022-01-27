@@ -34,6 +34,10 @@ with **CentOS-7** Linux installed on them.
 
 You need to have regular user with *sudo* privileges  - I used the default ***centos*** user
 
+### Let's Install Docker on the host(s) ###
+
+**If you use more than one host, this procedure need to be run on all of them**
+
 First, let’s update the package database:
 
     $ sudo yum check-update
@@ -67,4 +71,65 @@ If you want to avoid typing sudo whenever you run the docker command, add your u
 docker group:
 
     $ sudo usermod -aG docker <username>
+
+Now, we have docker installed on the system, we need some more things to run the elasticsearch image :
+
+### Let's create a Docker Swarm cluster ###
+
+**On the main hosts :**
+
+Initialize the swarm cluster
+
+    $ docker swarm init --advertise-addr <host ip>
+
+**On the other hosts :**
+
+    $ docker swarm join --token <token> <main host ip>
+
+For redundancy, it is better to have more than one manager, so on one of the other hosts run :
+
+    $ docker node promote
+
+### Final requirements ###
+
+* We need Java, so execute the command
+
+    `$ sudo yum install java`
+
+* We need Git (for cloning this repo.), so execute the command
+  
+    `$ sudo yum install git`
+
+* At the home directory (of centos user) create the directories for the data
+
+    `$ sudo mkdir -p ~/ES_Kibana/data/elasticsearch`
+
+    `$ sudo mkdir -p ~ES_Kibana/data/kibana/data`
+* We need to change permission for this directories
+    
+    `$ sudo chown -R :root ~ES_Kibana/data`
+
+When we use more than one host in the docker swarm cluster, we need shared storage that all the hosts can use.
+
+on all hosts, make sure that NFS share is mounted on the data directory
+
+    $ sudo vi /etc/fstab
+
+add the next line to the fstab file :
+
+    <nfs server>:<share path>  /home/centos/ES_Kibana/data   nfs defaults 0 0
+
+We need to configure the virtual memory :
+
+    $ sudo sysctl -w vm.max_map_count=262144
+
+For permanent change, update the file `/etc/sysctl.conf` with the value `vm.max_map_count=262144`
+
+Reboot all hosts, and verify that :
+* all hosts have the share mounted on `/home/centos/ES_Kibana/data`
+* docker services is run on all hosts : `systemctl status docker`
+* the virtual memory was set : `sysctl vm.max_map_count`
+
+**Now we are all set**
+
 
