@@ -1,0 +1,49 @@
+---
+version: '3.8'
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+    environment:
+      - network.host=0.0.0.0
+      - node.name="es01.{{.Task.Slot}}"
+      - discovery.type=single-node
+      - discovery.seed_hosts=elasticsearch
+      - cluster.name=escluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE:-1g} -Xmx${ES_HEAP_SIZE:-1g}"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/centos/ES_Kibana/data/elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+    deploy:
+      mode: replicated
+      replicas: 1
+      #resources:
+      #  limits:
+      #    memory: 1G
+      #    cpus: '0.50'
+      #  reservations:
+      #    memory: 512M
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.3
+    volumes:
+      - /home/centos/ES_Kibana/data/kibana/data:/usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    networks:
+      - esnet
+
+networks:
+  esnet:
+    driver: overlay
+    attachable: true
+
