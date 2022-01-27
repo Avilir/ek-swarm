@@ -32,6 +32,8 @@ do it.
 For use a ***Docker Swarm*** cluster I used 2 virtual machines (can be done with bare-metal as well),
 with **CentOS-7** Linux installed on them.
 
+The machines' minimum hardware requirements are : **8 CPU's & 16 GiB of Memory**
+
 You need to have regular user with *sudo* privileges  - I used the default ***centos*** user
 
 ### Let's Install Docker on the host(s) ###
